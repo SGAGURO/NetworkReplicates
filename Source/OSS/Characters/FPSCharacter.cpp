@@ -128,6 +128,11 @@ void AFPSCharacter::ToggleCrouch()
 
 void AFPSCharacter::ServerToggleCrouch_Implementation()
 {
+	NetMulticastToggleCrouch();
+}
+
+void AFPSCharacter::NetMulticastToggleCrouch_Implementation()
+{
 	bCrouch = !bCrouch;
 
 	if (bCrouch)

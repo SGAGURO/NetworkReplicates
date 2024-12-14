@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AFPSCharacter::AFPSCharacter()
 {
@@ -128,11 +129,6 @@ void AFPSCharacter::ToggleCrouch()
 
 void AFPSCharacter::ServerToggleCrouch_Implementation()
 {
-	NetMulticastToggleCrouch();
-}
-
-void AFPSCharacter::NetMulticastToggleCrouch_Implementation()
-{
 	bCrouch = !bCrouch;
 
 	if (bCrouch)
@@ -224,4 +220,11 @@ FHitResult AFPSCharacter::WeaponTrace(const FVector& StartTrace, const FVector& 
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_GameTraceChannel1, TraceParams);
 
 	return Hit;
+}
+
+void AFPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AFPSCharacter, bCrouch);
 }

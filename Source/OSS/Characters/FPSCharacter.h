@@ -76,14 +76,12 @@ protected:
 	UFUNCTION(Server, Unreliable)
 	void ServerToggleCrouch();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void NetMulticastToggleCrouch();
-
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsCrouch() const { return bCrouch; }
 
 private:
+	UPROPERTY(Replicated)
 	bool bCrouch;
 };
 

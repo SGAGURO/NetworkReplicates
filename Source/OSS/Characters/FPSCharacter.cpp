@@ -131,6 +131,17 @@ void AFPSCharacter::ServerToggleCrouch_Implementation()
 {
 	bCrouch = !bCrouch;
 
+	CrouchMovement();
+}
+
+
+void AFPSCharacter::OpRep_bCrouch()
+{
+	CrouchMovement();
+}
+
+void AFPSCharacter::CrouchMovement()
+{
 	if (bCrouch)
 	{
 		CameraComp->SetRelativeLocation(FVector::ZeroVector);

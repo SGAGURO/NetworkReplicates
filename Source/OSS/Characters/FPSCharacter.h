@@ -81,7 +81,12 @@ public:
 	FORCEINLINE bool IsCrouch() const { return bCrouch; }
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = "OpRep_bCrouch")
 	bool bCrouch;
+
+	UFUNCTION()
+	void OpRep_bCrouch();
+
+	void CrouchMovement();
 };
 

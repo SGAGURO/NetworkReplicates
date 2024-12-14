@@ -73,6 +73,9 @@ protected:
 protected:
 	void ToggleCrouch();
 
+	UFUNCTION(Server, Unreliable)
+	void ServerToggleCrouch();
+
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool IsCrouch() const { return bCrouch; }

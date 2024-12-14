@@ -123,6 +123,11 @@ void AFPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 
 void AFPSCharacter::ToggleCrouch()
 {
+	ServerToggleCrouch();
+}
+
+void AFPSCharacter::ServerToggleCrouch_Implementation()
+{
 	bCrouch = !bCrouch;
 
 	if (bCrouch)

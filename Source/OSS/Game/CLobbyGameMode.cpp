@@ -33,6 +33,6 @@ void ACLobbyGameMode::StartGame()
 	if (World)
 	{
 		bUseSeamlessTravel = true;
-		World->ServerTravel("/Game/Maps/Coop?listen");
+		World->ServerTravel("/Game/Maps/FPS?listen");
 	}
 }

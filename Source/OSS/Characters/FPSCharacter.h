@@ -68,5 +68,16 @@ protected:
 		
 	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+
+	//Crouch
+protected:
+	void ToggleCrouch();
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool IsCrouch() const { return bCrouch; }
+
+private:
+	bool bCrouch;
 };
 

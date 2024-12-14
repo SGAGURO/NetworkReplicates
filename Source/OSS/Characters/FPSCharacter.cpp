@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 
 AFPSCharacter::AFPSCharacter()
@@ -109,6 +110,7 @@ void AFPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFPSCharacter::OnFire);
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AFPSCharacter::ToggleCrouch);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFPSCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPSCharacter::MoveRight);
@@ -117,6 +119,22 @@ void AFPSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInput
 	PlayerInputComponent->BindAxis("TurnRate", this, &AFPSCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AFPSCharacter::LookUpAtRate);
+}
+
+void AFPSCharacter::ToggleCrouch()
+{
+	bCrouch = !bCrouch;
+
+	if (bCrouch)
+	{
+		CameraComp->SetRelativeLocation(FVector::ZeroVector);
+		GetCharacterMovement()->MaxWalkSpeed = 270.f;
+	}
+	else
+	{
+		CameraComp->SetRelativeLocation(FVector(0, 0, 64));
+		GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	}
 }
 
 void AFPSCharacter::OnFire()

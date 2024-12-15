@@ -23,6 +23,8 @@ AFPSCharacter::AFPSCharacter()
 	WeaponRange = 5000.f;
 	WeaponDamage = 20.f;
 
+	Health = 100.f;
+
 	//-------------------------------------------------------------------------
 	//CameraComp
 	//-------------------------------------------------------------------------
@@ -155,6 +157,40 @@ void AFPSCharacter::CrouchMovement()
 	}
 }
 
+float AFPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float DamageValue = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (DamageCauser == this)
+	{
+		return 0.f;
+	}
+
+	if (Health <= 0)
+	{
+		return 0.f;
+	}
+
+	APawn* CauserPawn = Cast<APawn>(DamageCauser);
+	if (CauserPawn)
+	{
+		//Hitted
+		Health -= Damage;
+
+		//Dead
+		if (Health <= 0)
+		{
+			//Todo. Self PlayerState::Death++
+			//Todo. Other PlayerState::Score++
+			//Todo. Resapwn via GameMode
+			//Todo. Ragdoll & Cosmetic(TP, FP Mesh, Dead WidgetAnim)
+			//Todo. LifeSpan
+		}
+	}
+
+	return DamageValue;
+}
+
 void AFPSCharacter::OnFire()
 {
 	if (FP_FireAnimation != nullptr)
@@ -181,15 +217,6 @@ void AFPSCharacter::OnFire()
 	}
 
 	const FVector EndTrace = StartTrace + ShootDir * WeaponRange;
-	const FHitResult Impact = WeaponTrace(StartTrace, EndTrace);
-
-	AActor* DamagedActor = Impact.GetActor();
-	UPrimitiveComponent* DamagedComponent = Impact.GetComponent();
-
-	if ((DamagedActor != nullptr) && (DamagedActor != this) && (DamagedComponent != nullptr) && DamagedComponent->IsSimulatingPhysics())
-	{
-		DamagedComponent->AddImpulseAtLocation(ShootDir * WeaponDamage, Impact.Location);
-	}
 
 	if (FP_GunshotParticle)
 	{
@@ -202,6 +229,7 @@ void AFPSCharacter::OnFire()
 
 void AFPSCharacter::ServerFire_Implementation(const FVector& LineStart, const FVector& LineEnd)
 {
+	WeaponTrace(LineStart, LineEnd);
 	NetMulticastFire();
 
 	if (ensure(BulletClass))
@@ -263,13 +291,24 @@ void AFPSCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-FHitResult AFPSCharacter::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const
+FHitResult AFPSCharacter::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace)
 {
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), true, GetInstigator());
 	TraceParams.bReturnPhysicalMaterial = true;
 
 	FHitResult Hit(ForceInit);
 	GetWorld()->LineTraceSingleByChannel(Hit, StartTrace, EndTrace, ECC_GameTraceChannel1, TraceParams);
+
+	if (!Hit.bBlockingHit)
+	{
+		return Hit;
+	}
+
+	AFPSCharacter* OtherCharacter = Cast<AFPSCharacter>(Hit.GetActor());
+	if (OtherCharacter)
+	{
+		OtherCharacter->TakeDamage(WeaponDamage, FDamageEvent(), GetController(), this);
+	}
 
 	return Hit;
 }
@@ -279,4 +318,5 @@ void AFPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AFPSCharacter, bCrouch);
+	DOREPLIFETIME(AFPSCharacter, Health);
 }

@@ -4,11 +4,29 @@
 #include "CanvasItem.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/Texture2D.h"
+#include "UI/CGameplayHUD.h"
 
 ACHUD::ACHUD()
 {
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPersonPack/Textures/FirstPersonCrosshair"));
 	CrosshairTex = CrosshairTexObj.Object;
+
+	static ConstructorHelpers::FClassFinder<UCGameplayHUD> WidgetClass(TEXT("/Game/UI/WB_GameplayHUD"));
+	if (WidgetClass.Succeeded())
+	{
+		GameplayHUDWidgetClass = WidgetClass.Class;
+	}
+}
+
+void ACHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (ensure(GameplayHUDWidgetClass))
+	{
+		GameplayHUDWidget = CreateWidget<UCGameplayHUD>(GetWorld(), GameplayHUDWidgetClass);
+		GameplayHUDWidget->AddToViewport();
+	}
 }
 
 void ACHUD::DrawHUD()

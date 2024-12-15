@@ -68,7 +68,7 @@ protected:
 	void TurnAtRate(float Rate);
 	void LookUpAtRate(float Rate);
 		
-	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const;
+	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace);
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	
 	//Fire
@@ -101,5 +101,17 @@ private:
 	void OpRep_bCrouch();
 
 	void CrouchMovement();
+
+	//Health
+private:
+	UPROPERTY(Replicated)
+	float Health;
+
+public:
+	float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetHealth() const { return Health; }
 };
 

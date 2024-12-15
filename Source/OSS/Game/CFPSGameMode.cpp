@@ -2,8 +2,8 @@
 #include "CHUD.h"
 #include "Characters/FPSCharacter.h"
 #include "GameFramework/PlayerStart.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "EngineUtils.h"
-#include "CPlayerState.h"
 #include "OSS.h"
 
 ACFPSGameMode::ACFPSGameMode()
@@ -62,4 +62,43 @@ void ACFPSGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	PlayerCharacter->SetTeamColor(PS->Team);
+	MoveToPlayerStart(PlayerCharacter, PS->Team);
+}
+
+void ACFPSGameMode::MoveToPlayerStart(APawn* Pawn, ETeamType Team)
+{
+	if (RedTeamPlayerStarts.Num() < 1 || BlueTeamPlayerStarts.Num() < 1)
+	{
+		StartPlay();
+	}
+
+	int32 Random = 0;
+	FVector Location = FVector::ZeroVector;
+	FRotator Rotation = FRotator::ZeroRotator;
+
+	switch (Team)
+	{
+	case ETeamType::Red:
+	{
+		Random = UKismetMathLibrary::RandomInteger(RedTeamPlayerStarts.Num() - 1);
+		Location = RedTeamPlayerStarts[Random]->GetActorLocation();
+		Rotation = RedTeamPlayerStarts[Random]->GetActorRotation();
+	}
+	break;
+
+	case ETeamType::Blue:
+	{
+		Random = UKismetMathLibrary::RandomInteger(BlueTeamPlayerStarts.Num() - 1);
+		Location = BlueTeamPlayerStarts[Random]->GetActorLocation();
+		Rotation = BlueTeamPlayerStarts[Random]->GetActorRotation();
+	}
+	break;
+	}
+
+	Pawn->SetActorLocation(Location);
+
+	if (Pawn->GetController())
+	{
+		Pawn->GetController()->ClientSetRotation(Rotation, true);
+	}
 }

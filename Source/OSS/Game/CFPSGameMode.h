@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "CPlayerState.h"
 #include "CFPSGameMode.generated.h"
 
 class APlayerStart;
@@ -17,6 +18,9 @@ public:
 protected:
 	virtual void StartPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+private:
+	void MoveToPlayerStart(APawn* Pawn, ETeamType Team);
 
 private:
 	TArray<APlayerStart*> RedTeamPlayerStarts;

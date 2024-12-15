@@ -9,6 +9,7 @@ class UCameraComponent;
 class USkeletalMeshComponent;
 class USoundBase;
 class UAnimMontage;
+class ACBullet;
 
 UCLASS(config=Game)
 class AFPSCharacter : public ACharacter
@@ -42,6 +43,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	TSubclassOf<ACBullet> BulletClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
 
@@ -58,8 +62,6 @@ public:
 	float WeaponDamage;
 
 protected:
-	void OnFire();
-
 	void MoveForward(float Val);
 	void MoveRight(float Val);
 		
@@ -68,6 +70,17 @@ protected:
 		
 	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace) const;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+	
+	//Fire
+protected:
+	void OnFire();
+
+private:
+	UFUNCTION(Reliable, Server)
+	void ServerFire(const FVector& LineStart, const FVector& LineEnd);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastFire();
 
 	//Crouch
 protected:

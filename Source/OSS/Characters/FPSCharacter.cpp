@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Actors/CBullet.h"
 
 AFPSCharacter::AFPSCharacter()
 {
@@ -156,11 +157,6 @@ void AFPSCharacter::CrouchMovement()
 
 void AFPSCharacter::OnFire()
 {
-	if (FireSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-	}
-
 	if (FP_FireAnimation != nullptr)
 	{
 		UAnimInstance* AnimInstance = FP_Mesh->GetAnimInstance();
@@ -193,6 +189,51 @@ void AFPSCharacter::OnFire()
 	if ((DamagedActor != nullptr) && (DamagedActor != this) && (DamagedComponent != nullptr) && DamagedComponent->IsSimulatingPhysics())
 	{
 		DamagedComponent->AddImpulseAtLocation(ShootDir * WeaponDamage, Impact.Location);
+	}
+
+	if (FP_GunshotParticle)
+	{
+		FP_GunshotParticle->ResetParticles();
+		FP_GunshotParticle->SetActive(true);
+	}
+
+	ServerFire(StartTrace, EndTrace);
+}
+
+void AFPSCharacter::ServerFire_Implementation(const FVector& LineStart, const FVector& LineEnd)
+{
+	NetMulticastFire();
+
+	if (ensure(BulletClass))
+	{
+		FActorSpawnParameters SpawnParam;
+		SpawnParam.Instigator = this;
+		SpawnParam.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AActor>(BulletClass, FP_Gun->GetSocketLocation("Muzzle"), GetControlRotation(), SpawnParam);
+	}
+}
+
+void AFPSCharacter::NetMulticastFire_Implementation()
+{
+	if (FireSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
+
+	if (TP_GunshotParticle)
+	{
+		TP_GunshotParticle->ResetParticles();
+		TP_GunshotParticle->SetActive(true);
+	}
+
+	if (TP_FireAnimation)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(TP_FireAnimation);
+		}
 	}
 }
 

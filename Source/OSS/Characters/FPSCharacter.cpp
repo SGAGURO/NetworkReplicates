@@ -307,10 +307,45 @@ FHitResult AFPSCharacter::WeaponTrace(const FVector& StartTrace, const FVector& 
 	AFPSCharacter* OtherCharacter = Cast<AFPSCharacter>(Hit.GetActor());
 	if (OtherCharacter)
 	{
-		OtherCharacter->TakeDamage(WeaponDamage, FDamageEvent(), GetController(), this);
+		ACPlayerState* SelfPS = GetPlayerState<ACPlayerState>();
+		ACPlayerState* OtherPS = OtherCharacter->GetPlayerState<ACPlayerState>();
+
+		if (SelfPS && OtherPS && OtherPS->IsHostileTeam(SelfPS))
+		{
+			OtherCharacter->TakeDamage(WeaponDamage, FDamageEvent(), GetController(), this);
+		}
 	}
 
 	return Hit;
+}
+
+void AFPSCharacter::SetTeamColor(ETeamType InTeam)
+{
+	BodyColor = FVector::OneVector;
+
+	switch (InTeam)
+	{
+		case ETeamType::Red:
+		{
+			BodyColor = FVector(1, 0, 0);
+		}
+		break;
+
+		case ETeamType::Blue:
+		{
+			BodyColor = FVector(0, 0, 1);
+		}
+		break;
+	}
+
+	FP_Mesh->SetVectorParameterValueOnMaterials("BodyColor", BodyColor);
+	GetMesh()->SetVectorParameterValueOnMaterials("BodyColor", BodyColor);
+}
+
+void AFPSCharacter::OnRep_BodyColor()
+{
+	FP_Mesh->SetVectorParameterValueOnMaterials("BodyColor", BodyColor);
+	GetMesh()->SetVectorParameterValueOnMaterials("BodyColor", BodyColor);
 }
 
 void AFPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const
@@ -319,4 +354,5 @@ void AFPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 
 	DOREPLIFETIME(AFPSCharacter, bCrouch);
 	DOREPLIFETIME(AFPSCharacter, Health);
+	DOREPLIFETIME(AFPSCharacter, BodyColor);
 }

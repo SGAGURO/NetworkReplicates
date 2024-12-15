@@ -19,6 +19,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	void OnPlayerDead();
+
 private:
 	class UTexture2D* CrosshairTex;
 

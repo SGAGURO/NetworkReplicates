@@ -102,3 +102,35 @@ void ACFPSGameMode::MoveToPlayerStart(APawn* Pawn, ETeamType Team)
 		Pawn->GetController()->ClientSetRotation(Rotation, true);
 	}
 }
+
+void ACFPSGameMode::OnActorKilled(AActor* VictimActor)
+{
+	AFPSCharacter* Player = Cast<AFPSCharacter>(VictimActor);
+	if (Player)
+	{
+		FTimerHandle TimerHandle_RespawnDelay;
+		FTimerDelegate Delegate;
+		Delegate.BindUFunction(this, "RespawnPlayerElpased", Player->GetController());
+
+		float RespawnDelay = 3.f;
+		GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, RespawnDelay, false);
+	}
+}
+
+void ACFPSGameMode::RespawnPlayerElpased(APlayerController* Controller)
+{
+	if (ensure(Controller))
+	{
+		Controller->UnPossess();
+
+		RestartPlayer(Controller);
+
+		AFPSCharacter* NewPlayerCharacter = Controller->GetPawn<AFPSCharacter>();
+		ACPlayerState* PS = Controller->GetPlayerState<ACPlayerState>();
+		if (PS)
+		{
+			NewPlayerCharacter->SetTeamColor(PS->Team);
+			MoveToPlayerStart(NewPlayerCharacter, PS->Team);
+		}
+	}
+}

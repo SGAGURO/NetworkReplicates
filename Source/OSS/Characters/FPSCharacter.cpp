@@ -9,6 +9,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Actors/CBullet.h"
+#include "Game/CFPSGameMode.h"
+#include "Game/CHUD.h"
 
 AFPSCharacter::AFPSCharacter()
 {
@@ -180,11 +182,31 @@ float AFPSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, A
 		//Dead
 		if (Health <= 0)
 		{
-			//Todo. Self PlayerState::Death++
-			//Todo. Other PlayerState::Score++
-			//Todo. Resapwn via GameMode
-			//Todo. Ragdoll & Cosmetic(TP, FP Mesh, Dead WidgetAnim)
-			//Todo. LifeSpan
+			ACPlayerState* SelfPS = GetPlayerState<ACPlayerState>();
+			ACPlayerState* OtherPS = CauserPawn->GetPlayerState<ACPlayerState>();
+
+			if (SelfPS)
+			{
+				SelfPS->Death++;
+			}
+
+			if (OtherPS)
+			{
+				OtherPS->SetScore(OtherPS->GetScore() + 1.f);
+			}
+
+			ACFPSGameMode* GM = GetWorld()->GetAuthGameMode<ACFPSGameMode>();
+			if (GM)
+			{
+				GM->OnActorKilled(this);
+			}
+
+
+			FVector ImpactDirection = (GetActorLocation() - DamageCauser->GetActorLocation()).GetSafeNormal();
+			NetMulticastDead(ImpactDirection);
+			ClientDead(ImpactDirection);
+
+			SetLifeSpan(5.f);
 		}
 	}
 
@@ -317,6 +339,36 @@ FHitResult AFPSCharacter::WeaponTrace(const FVector& StartTrace, const FVector& 
 	}
 
 	return Hit;
+}
+
+void AFPSCharacter::NetMulticastDead_Implementation(FVector ImpactDirection)
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+	GetMesh()->SetPhysicsBlendWeight(1.f);
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->AddImpulseAtLocation(ImpactDirection * 30000.f, GetActorLocation());
+}
+
+void AFPSCharacter::ClientDead_Implementation(FVector ImpactDirection)
+{
+	FP_Mesh->SetCollisionProfileName("Ragdoll");
+	FP_Mesh->SetPhysicsBlendWeight(1.f);
+	FP_Mesh->SetSimulatePhysics(true);
+	FP_Mesh->AddImpulseAtLocation(ImpactDirection * 300.f, GetActorLocation());
+
+	APlayerController* PC = GetController<APlayerController>();
+	if (PC)
+	{
+		DisableInput(PC);
+
+		ACHUD* HUD = PC->GetHUD<ACHUD>();
+		if (HUD)
+		{
+			HUD->OnPlayerDead();
+		}
+	}
 }
 
 void AFPSCharacter::SetTeamColor(ETeamType InTeam)

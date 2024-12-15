@@ -22,6 +22,13 @@ protected:
 private:
 	void MoveToPlayerStart(APawn* Pawn, ETeamType Team);
 
+public:
+	void OnActorKilled(AActor* VictimActor);
+
+private:
+	UFUNCTION()
+	void RespawnPlayerElpased(APlayerController* Controller);
+
 private:
 	TArray<APlayerStart*> RedTeamPlayerStarts;
 	TArray<APlayerStart*> BlueTeamPlayerStarts;

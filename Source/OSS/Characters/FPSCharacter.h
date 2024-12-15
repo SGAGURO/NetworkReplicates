@@ -115,6 +115,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetHealth() const { return Health; }
 
+private:
+	UFUNCTION(NetMulticast, Unreliable)
+	void NetMulticastDead(FVector ImpactDirection);
+
+	UFUNCTION(Client, Unreliable)
+	void ClientDead(FVector ImpactDirection);
+
 	//Team Color
 public:
 	void SetTeamColor(ETeamType InTeam);

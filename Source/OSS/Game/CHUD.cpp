@@ -41,3 +41,11 @@ void ACHUD::DrawHUD()
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem( TileItem );
 }
+
+void ACHUD::OnPlayerDead()
+{
+	if (GameplayHUDWidget)
+	{
+		GameplayHUDWidget->OnPlayerDead();
+	}
+}

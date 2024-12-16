@@ -8,7 +8,7 @@ void ACLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	++NumberOfPlayers;
 	UE_LOG(LogTemp, Warning, TEXT("Current Players : %d"), NumberOfPlayers);
 
-	if (NumberOfPlayers >= 4)
+	if (NumberOfPlayers >= 2)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Reached max players"));
 
